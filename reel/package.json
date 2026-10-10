@@ -1,0 +1,30 @@
+{
+  "name": "sainath-reel-coding-2026",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "audio": "python3 ../audio/gen_sfx.py public",
+    "preview": "../scripts/render.sh preview",
+    "final": "../scripts/render.sh final",
+    "stills": "node scripts/stills.mjs",
+    "typecheck": "tsc -p ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fontsource/inter": "^5.1.0",
+    "@fontsource/jetbrains-mono": "^5.1.1",
+    "@fontsource/space-grotesk": "^5.1.0",
+    "@remotion/bundler": "^4.0.242",
+    "@remotion/cli": "^4.0.242",
+    "@remotion/renderer": "^4.0.242",
+    "@types/react": "^18.3.12",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.242",
+    "typescript": "^5.6.3"
+  },
+  "private": true
+}

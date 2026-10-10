@@ -1,0 +1,9 @@
+node_modules/
+reel/public/sfx/
+reel/public/music/
+reel/public/footage/
+source/
+work/
+out/review/
+out/_raw.mp4
+*.map.json
