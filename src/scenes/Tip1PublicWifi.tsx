@@ -8,17 +8,24 @@
 // ---------- TIMING (retime here; everything below is relative to these) ----------
 export const BEATS = {
   first: 0, // "1st thing"
-  wifi: 18, // "public wifi ki connect cheskune tappudu"
+  phone: 26, // "nuvvu eppudu anna"         -> phone springs in
+  wifi: 43, // "public wifi ki connect..."  -> router + dashed line
   accounts: 100, // "important sensitive accounts ni open cheyyaku"
-  vpn: 153, // "okavela chesna vpn on chesko"
-  attack: 195, // "endhuku ante attackers ... session id ni steal chesstharu"
-  tick: 282, // checkbox 1 ticks
+  stamps: 125, // red ❌ stamps start (on "open cheyyaku")
+  vpn: 160, // "okavela chesina"            -> VPN toggle appears (OFF)
+  vpnOn: 190, // "VPN on chesko"              -> toggle flips ON + tunnel
+  attack: 223, // "endukante attackers aa wifi tone ni" -> tunnel greys, hacker rises
+  session: 280, // "session id ni"              -> session chip starts moving
+  steal: 309, // "steal chestharu"            -> snatch + red flash
+  tick: 324, // box 1 ticks
+  end: 340,
 };
-export const DURATION = 300;
+export const DURATION = BEATS.end;
 
 import React from "react";
 import { AbsoluteFill, interpolate, interpolateColors, useCurrentFrame } from "remotion";
 import { evolvePath, getLength, getPointAtLength } from "@remotion/paths";
+import { BeatLabel } from "../components/BeatLabel";
 import { CheckRow } from "../components/CheckRow";
 import { Glitch } from "../components/Glitch";
 import { Headline, anton } from "../components/Headline";
@@ -125,28 +132,31 @@ const Hacker: React.FC = () => (
 export type Tip1PublicWifiProps = {
   /** Show public/tip1.mp4 in the footage band to line up beats. Off for export. */
   showReference?: boolean;
+  /** Studio sync helper: frame number + current beat, top-left. Off for export. */
+  showBeatLabels?: boolean;
 };
 
 export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
   showReference = false,
+  showBeatLabels = false,
 }) => {
   const frame = useCurrentFrame();
   const pop = usePop();
 
   // ---- Beat 2: wifi ----
-  const phoneIn = pop(BEATS.wifi, 12);
-  const routerIn = pop(BEATS.wifi + 3, 12);
-  const ssidIn = pop(BEATS.wifi + 8, 10);
+  const phoneIn = pop(BEATS.phone, 12);
+  const routerIn = pop(BEATS.wifi, 12);
+  const ssidIn = pop(BEATS.wifi, 10);
   const lineDraw = interpolate(
     frame,
-    [BEATS.wifi + 14, BEATS.wifi + 29],
+    [BEATS.wifi, BEATS.wifi + 15],
     [0, 1],
     clamp,
   );
   const linePath = `M ${LINE_X2} ${LINE_Y} L ${LINE_X1} ${LINE_Y}`;
   const lineMask = evolvePath(lineDraw, linePath);
   const connectedOpacity =
-    interpolate(frame, [BEATS.wifi + 29, BEATS.wifi + 35], [0, 1], clamp) *
+    interpolate(frame, [BEATS.wifi + 15, BEATS.wifi + 21], [0, 1], clamp) *
     interpolate(frame, [BEATS.attack, BEATS.attack + 4], [1, 0], clamp);
 
   // ---- Beat 3: accounts ----
@@ -162,8 +172,8 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
     0,
     pop(BEATS.vpn, 8) * (1 - pop(BEATS.attack, 6)),
   );
-  const flip = pop(BEATS.vpn + 8, 8);
-  const tunnelIn = Math.max(0, pop(BEATS.vpn + 8, 10));
+  const flip = pop(BEATS.vpnOn, 8);
+  const tunnelIn = Math.max(0, pop(BEATS.vpnOn, 10));
   const tunnelColor = interpolateColors(
     frame,
     [BEATS.attack, BEATS.attack + 6],
@@ -183,17 +193,17 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
   );
   const span = LINE_X2 - LINE_X1;
   const shimmerX =
-    LINE_X1 - 150 + ((Math.max(0, frame - BEATS.vpn - 8) * 14) % (span + 300));
+    LINE_X1 - 150 + ((Math.max(0, frame - BEATS.vpnOn) * 14) % (span + 300));
 
   // ---- Beat 5: attack ----
-  const noVpnScale = pop(BEATS.attack + 2, 8);
-  const hackerRise = pop(BEATS.attack + 4, 12);
+  const noVpnScale = pop(BEATS.attack, 8);
+  const hackerRise = pop(BEATS.attack, 12);
   const hackerGlitch =
-    frame >= BEATS.attack + 4 && frame < BEATS.attack + 8;
-  const SNATCH = BEATS.attack + 40;
+    frame >= BEATS.attack && frame < BEATS.attack + 4;
+  const SNATCH = BEATS.steal;
   const chipTravel = interpolate(
     frame,
-    [BEATS.attack + 12, SNATCH],
+    [BEATS.session, SNATCH],
     [0, 1],
     { ...clamp, easing: (t) => t * t * (3 - 2 * t) },
   );
@@ -261,7 +271,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
             </linearGradient>
           </defs>
 
-          {frame >= BEATS.wifi + 14 ? (
+          {frame >= BEATS.wifi ? (
             <path
               d={linePath}
               stroke={colors.text}
@@ -272,7 +282,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
             />
           ) : null}
 
-          {frame >= BEATS.vpn + 8 ? (
+          {frame >= BEATS.vpnOn ? (
             <g
               opacity={tunnelOpacity}
               style={{
@@ -308,9 +318,9 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
           ) : null}
 
           {/* Looping wifi arcs above the router */}
-          {frame >= BEATS.wifi + 10
+          {frame >= BEATS.wifi
             ? [0, 1, 2].map((i) => {
-                const t = ((frame - BEATS.wifi - 10) / 24 + i / 3) % 1;
+                const t = ((frame - BEATS.wifi) / 24 + i / 3) % 1;
                 const r = 30 + 60 * t;
                 const cx = ROUTER_X;
                 const cy = 262;
@@ -330,12 +340,16 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
             : null}
         </svg>
 
-        {/* Phone + router spring in from the sides */}
+        {/* Phone springs in from the left at BEATS.phone */}
+        {frame >= BEATS.phone ? (
+          <At x={PHONE_X} y={LINE_Y} transform={`translateX(${(1 - phoneIn) * -460}px)`}>
+            <PhoneIcon />
+          </At>
+        ) : null}
+
+        {/* Router + SSID label spring in from the right at BEATS.wifi */}
         {frame >= BEATS.wifi ? (
           <>
-            <At x={PHONE_X} y={LINE_Y} transform={`translateX(${(1 - phoneIn) * -460}px)`}>
-              <PhoneIcon />
-            </At>
             <At x={ROUTER_X} y={LINE_Y + 18} transform={`translateX(${(1 - routerIn) * 460}px)`}>
               <RouterIcon />
             </At>
@@ -383,7 +397,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
               if (frame < BEATS.accounts + i * 4) return null;
               const x = PHONE_X + (target.x - PHONE_X) * p;
               const y = LINE_Y + (target.y - LINE_Y) * p;
-              const stampFrom = BEATS.accounts + 20 + i * 5;
+              const stampFrom = BEATS.stamps + i * 5;
               const stampS = pop(stampFrom, 8);
               const shakeIdx = frame - stampFrom - 3;
               const shake = shakeIdx >= 0 && shakeIdx < 3 ? jitter(shakeIdx, i) * 0.6 : 0;
@@ -453,7 +467,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
         ) : null}
 
         {/* Beat 5: "NO VPN?" */}
-        {frame >= BEATS.attack + 2 ? (
+        {frame >= BEATS.attack ? (
           <At
             x={MID_X}
             y={LINE_Y - 90}
@@ -471,7 +485,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
         ) : null}
 
         {/* Beat 5: hacker rises from below the line */}
-        {frame >= BEATS.attack + 4 ? (
+        {frame >= BEATS.attack ? (
           <div
             style={{
               position: "absolute",
@@ -487,10 +501,10 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
         ) : null}
 
         {/* Beat 5: session chip travels phone → router, gets snatched */}
-        {frame >= BEATS.attack + 10 ? (
+        {frame >= BEATS.session ? (
           <At x={chipX} y={chipY} transform={`rotate(${chipRotate}deg)`}>
             <SessionChip
-              popFrom={BEATS.attack + 10}
+              popFrom={BEATS.session}
               borderColor={snatched ? colors.danger : colors.cyan}
               glitch={snatched && frame < SNATCH + 8}
               style={{
@@ -565,7 +579,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
         </div>
       </Headline>
 
-      <Headline from={BEATS.accounts} to={BEATS.vpn}>
+      <Headline from={BEATS.accounts} to={BEATS.vpnOn}>
         <div
           style={{
             fontFamily: fonts.label,
@@ -581,7 +595,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
         </div>
       </Headline>
 
-      <Headline from={BEATS.vpn} to={BEATS.attack}>
+      <Headline from={BEATS.vpnOn} to={BEATS.steal}>
         <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
           <ShieldGlyph size={76} />
           <div style={anton(110)}>
@@ -590,8 +604,8 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
         </div>
       </Headline>
 
-      <Headline from={BEATS.attack} to={DURATION}>
-        <Glitch active={frame < BEATS.attack + 6}>
+      <Headline from={BEATS.steal} to={BEATS.end}>
+        <Glitch active={frame < BEATS.steal + 6}>
           <div style={{ ...anton(110), color: colors.danger }}>
             SESSION STOLEN
           </div>
@@ -615,6 +629,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
           highlight={frame < BEATS.tick ? 1 : undefined}
         />
       </div>
+      {showBeatLabels ? <BeatLabel beats={BEATS} /> : null}
     </AbsoluteFill>
   );
 };

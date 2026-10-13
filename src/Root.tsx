@@ -35,7 +35,7 @@ export const RemotionRoot: React.FC = () => {
         fps={video.fps}
         width={video.width}
         height={video.height}
-        defaultProps={{ showReference: true }}
+        defaultProps={{ showReference: true, showBeatLabels: true }}
       />
       <Composition
         id="Tip2Logout"
