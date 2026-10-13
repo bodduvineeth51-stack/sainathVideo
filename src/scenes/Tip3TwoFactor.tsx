@@ -1,26 +1,24 @@
 /**
- * Tip3TwoFactor – content: "log out on someone else's device" (#2 story).
- * VO: "public device lo kani ledha vera vaalla device lo kani login aithe,
- * mi pani aipoyaka just close cheyyakunda logout avvandi. Endukante cookies
- * store aithai."
+ * Tip #3 – Two-factor authentication.
  *
- * Icons (public/icons/): desktop.png, phone.png, check.png, cross.png,
- * door.png, cookie.png. Reference clip: public/tip2.mp4.
+ * Icons (public/icons/): twofa.png, otp.png, check.png, session-id.png,
+ * expire.png, hacker.png, blocked.png, shield.png. Reference clip: public/tip3.mp4.
  */
 
 // ---------- TIMING (measured from the audio; everything derives from these) ----------
 export const BEATS = {
-  publicPc: 24, // "public device lo kani"
-  friend: 81, // "ledha vera vaalla device lo kani"
-  login: 142, // "login aithe"
-  done: 159, // "mi pani aipoyaka"
-  close: 183, // "just close cheyyakunda"
-  logout: 216, // "logout avvandi"
-  cookies: 242, // "endukante cookies"
-  store: 279, // "store aithai"
-  check: 284,
-  tick: 292,
-  end: 298,
+  twofa: 6,
+  enable: 48,
+  session: 90,
+  expire: 138,
+  hacker: 159,
+  login: 186,
+  shield: 234,
+  biggest: 280,
+  shieldW: 289,
+  check: 290,
+  tick: 300,
+  end: 308,
 };
 export const DURATION = BEATS.end;
 
@@ -28,9 +26,10 @@ import React from "react";
 import { AbsoluteFill, interpolate, interpolateColors, useCurrentFrame } from "remotion";
 import { BeatLabel } from "../components/BeatLabel";
 import { CheckRow } from "../components/CheckRow";
-import { Headline, anton, poppins } from "../components/Headline";
+import { Glitch } from "../components/Glitch";
+import { Headline, anton } from "../components/Headline";
 import { HERO_MAX, HeroIcon } from "../components/HeroIcon";
-import { At, clamp, usePop } from "../components/motion";
+import { At, clamp, jitter, usePop } from "../components/motion";
 import { ReferenceVideo } from "../components/ReferenceVideo";
 import { TipBadge } from "../components/TipBadge";
 import { colors, layout } from "../theme";
@@ -40,11 +39,16 @@ const BAND_H = layout.footageTop; // 656 – top band
 const HERO_X = 540;
 const HERO_Y = 330;
 const HERO = HERO_MAX; // 280
-const SIDE = 220;
-const DESKTOP_SIDE_X = 360;
-const PHONE_X = 720;
-const CHECK = 110;
-const CROSS = 180;
+const SIDE_Y = 400; // y for the small companion icons
+const OTP_X = 470;
+const OK_X = 680;
+const OK_SIZE = 150;
+const CARD_X = 400;
+const CLOCK_X = 690;
+const CLOCK_SIZE = 170;
+const HACKER_X = 460;
+const BLOCK_X = 660;
+const BLOCK_SIZE = 180;
 const BADGE_Y = 1370;
 const HEADLINE_Y = 1480;
 const ROW_Y = 1720;
@@ -52,7 +56,7 @@ const ROW_Y = 1720;
 const glow = (color: string, px = 40) => `drop-shadow(0 0 ${px}px ${color})`;
 
 export type Tip3TwoFactorProps = {
-  /** Show public/tip2.mp4 in the footage band to line up beats. Off for export. */
+  /** Show public/tip3.mp4 in the footage band to line up beats. Off for export. */
   showReference?: boolean;
   /** Studio sync helper: frame number + current beat, top-left. Off for export. */
   showBeatLabels?: boolean;
@@ -66,53 +70,43 @@ export const Tip3TwoFactor: React.FC<Tip3TwoFactorProps> = ({
   const pop = usePop();
   const out = (from: number, dur = 6) => Math.max(0, 1 - pop(from, dur));
 
-  // ---- Desktop: hero → side (friend) → hero (login) → exit (logout) ----
-  const toSide = pop(BEATS.friend, 12);
-  const toCenter = pop(BEATS.login, 12);
-  const sideAmt = frame >= BEATS.login ? 1 - toCenter : toSide;
-  const desktopX = interpolate(sideAmt, [0, 1], [HERO_X, DESKTOP_SIDE_X]);
-  const desktopSize = interpolate(sideAmt, [0, 1], [HERO, SIDE]);
-  const desktopScale = pop(BEATS.publicPc, 10) * out(BEATS.logout);
+  // ---- twofa ----
+  const twofaScale = pop(BEATS.twofa, 10) * out(BEATS.enable);
 
-  // ---- Phone (friend → login) ----
-  const phoneIn = pop(BEATS.friend, 12);
-  const phoneOut = pop(BEATS.login, 8);
+  // ---- enable: OTP code + check ----
+  const otpScale = pop(BEATS.enable, 10) * out(BEATS.session);
+  const okFrom = BEATS.enable + 10;
+  const okScale = pop(okFrom, 8) * out(BEATS.session);
 
-  // ---- Check: pops at login, bounces once at done, exits at close ----
-  const checkBounce = interpolate(
+  // ---- session: ID card; expire: slides left, greys out, glow → red ----
+  const cardScale = pop(BEATS.session, 10) * out(BEATS.hacker);
+  const cardX = interpolate(pop(BEATS.expire, 12), [0, 1], [HERO_X, CARD_X]);
+  const grey = interpolate(frame, [BEATS.expire, BEATS.expire + 12], [0, 1], clamp);
+  const cardGlow = interpolateColors(
     frame,
-    [BEATS.done, BEATS.done + 4, BEATS.done + 10],
-    [1, 1.22, 1],
-    clamp,
-  );
-  const checkScale = pop(BEATS.login, 8) * checkBounce * out(BEATS.close);
-
-  // ---- Cross slam (close → logout) ----
-  const slam = pop(BEATS.close, 8);
-  const crossScale = (1.8 - 0.8 * slam) * out(BEATS.logout);
-
-  // ---- Door with a closing squash (logout → cookies) ----
-  const doorScale = pop(BEATS.logout, 10) * out(BEATS.cookies);
-  const squash = interpolate(
-    frame,
-    [BEATS.logout + 10, BEATS.logout + 15, BEATS.logout + 22],
-    [1, 0.85, 1],
-    clamp,
-  );
-
-  // ---- Cookie: cyan glow, turns red + one pulse at store ----
-  const cookieScale = pop(BEATS.cookies, 10);
-  const cookieGlow = interpolateColors(
-    frame,
-    [BEATS.store, BEATS.store + 3],
+    [BEATS.expire, BEATS.expire + 12],
     [colors.cyan, colors.danger],
   );
-  const pulse = interpolate(
-    frame,
-    [BEATS.store, BEATS.store + 5, BEATS.store + 12],
-    [0, 1, 0],
-    clamp,
-  );
+
+  // Alarm clock rings: ±8°, 3 cycles over 18 frames after it pops in
+  const clockFrom = BEATS.expire + 2;
+  const clockScale = pop(clockFrom, 8) * out(BEATS.hacker);
+  const ringT = interpolate(frame, [clockFrom + 4, clockFrom + 22], [0, 1], clamp);
+  const clockRotate = ringT > 0 && ringT < 1 ? 8 * Math.sin(ringT * Math.PI * 2 * 3) : 0;
+
+  // ---- hacker (glitch on entry); login: moves left + blocked slam ----
+  const hackerScale = pop(BEATS.hacker, 10) * out(BEATS.shield);
+  const hackerGlitch = frame >= BEATS.hacker && frame < BEATS.hacker + 4;
+  const hackerX = interpolate(pop(BEATS.login, 12), [0, 1], [HERO_X, HACKER_X]);
+  const slam = pop(BEATS.login, 8);
+  const blockScale = (1.8 - 0.8 * slam) * out(BEATS.shield);
+  const shakeIdx = frame - BEATS.login - 3; // shake as it lands
+  const shake = shakeIdx >= 0 && shakeIdx < 3 ? jitter(shakeIdx) : 0;
+
+  // ---- shield; biggest: springs to 1.15x; shieldW: one pulse ring ----
+  const shieldIn = pop(BEATS.shield, 10);
+  const shieldGrow = interpolate(pop(BEATS.biggest, 10), [0, 1], [1, 1.15]);
+  const ring = interpolate(frame, [BEATS.shieldW, BEATS.shieldW + 14], [0, 1], clamp);
 
   // ---- check / tick ----
   const rowIn = pop(BEATS.check, 10);
@@ -120,7 +114,7 @@ export const Tip3TwoFactor: React.FC<Tip3TwoFactorProps> = ({
 
   return (
     <AbsoluteFill>
-      {showReference ? <ReferenceVideo clip="tip2.mp4" /> : null}
+      {showReference ? <ReferenceVideo clip="tip3.mp4" /> : null}
 
       {/* ================= TOP BAND ================= */}
       <div
@@ -133,123 +127,129 @@ export const Tip3TwoFactor: React.FC<Tip3TwoFactorProps> = ({
           overflow: "hidden", // nothing can leak into the footage band
         }}
       >
-        {frame >= BEATS.friend && phoneOut < 1 ? (
+        {frame >= BEATS.twofa && twofaScale > 0 ? (
+          <At x={HERO_X} y={HERO_Y} transform={`scale(${twofaScale})`} style={{ filter: glow(colors.cyan) }}>
+            <HeroIcon name="twofa.png" size={HERO} />
+          </At>
+        ) : null}
+
+        {frame >= BEATS.enable && otpScale > 0 ? (
+          <At x={OTP_X} y={HERO_Y} transform={`scale(${otpScale})`} style={{ filter: glow(colors.cyan) }}>
+            <HeroIcon name="otp.png" size={HERO} />
+          </At>
+        ) : null}
+        {frame >= okFrom && okScale > 0 ? (
+          <At x={OK_X} y={SIDE_Y} transform={`scale(${okScale})`} style={{ filter: glow(colors.cyan, 24) }}>
+            <HeroIcon name="check.png" size={OK_SIZE} />
+          </At>
+        ) : null}
+
+        {frame >= BEATS.session && cardScale > 0 ? (
           <At
-            x={PHONE_X}
+            x={cardX}
             y={HERO_Y}
-            transform={`translateX(${(1 - phoneIn) * 520 + phoneOut * 520}px)`}
+            transform={`scale(${cardScale})`}
+            style={{ filter: `grayscale(${grey}) ${glow(cardGlow)}` }}
           >
-            <HeroIcon name="phone.png" size={SIDE} />
+            <HeroIcon name="session-id.png" size={HERO} />
+          </At>
+        ) : null}
+        {frame >= clockFrom && clockScale > 0 ? (
+          <At
+            x={CLOCK_X}
+            y={SIDE_Y}
+            transform={`scale(${clockScale}) rotate(${clockRotate}deg)`}
+            style={{ filter: glow(colors.danger, 24) }}
+          >
+            <HeroIcon name="expire.png" size={CLOCK_SIZE} />
           </At>
         ) : null}
 
-        {frame >= BEATS.publicPc && desktopScale > 0 ? (
-          <At x={desktopX} y={HERO_Y} transform={`scale(${desktopScale})`}>
-            <div style={{ position: "relative", width: desktopSize, height: desktopSize }}>
-              <div style={{ filter: glow(colors.cyan) }}>
-                <HeroIcon name="desktop.png" size={desktopSize} />
-              </div>
-
-              {frame >= BEATS.login && checkScale > 0 ? (
-                <At
-                  x={desktopSize - 10}
-                  y={10}
-                  transform={`scale(${checkScale})`}
-                  style={{ filter: glow(colors.cyan, 20) }}
-                >
-                  <HeroIcon name="check.png" size={CHECK} />
-                </At>
-              ) : null}
-
-              {frame >= BEATS.close && crossScale > 0 ? (
-                <At
-                  x={desktopSize / 2}
-                  y={desktopSize / 2}
-                  transform={`scale(${crossScale})`}
-                  style={{ filter: glow(colors.danger) }}
-                >
-                  <HeroIcon name="cross.png" size={CROSS} />
-                </At>
-              ) : null}
-            </div>
+        {frame >= BEATS.hacker && hackerScale > 0 ? (
+          <At x={hackerX} y={HERO_Y} transform={`scale(${hackerScale})`} style={{ filter: glow(colors.danger) }}>
+            <Glitch active={hackerGlitch}>
+              <HeroIcon name="hacker.png" size={HERO} />
+            </Glitch>
+          </At>
+        ) : null}
+        {frame >= BEATS.login && blockScale > 0 ? (
+          <At
+            x={BLOCK_X + shake}
+            y={SIDE_Y}
+            transform={`scale(${blockScale})`}
+            style={{ filter: glow(colors.danger, 24) }}
+          >
+            <HeroIcon name="blocked.png" size={BLOCK_SIZE} />
           </At>
         ) : null}
 
-        {frame >= BEATS.logout && doorScale > 0 ? (
+        {frame >= BEATS.shield ? (
           <At
             x={HERO_X}
             y={HERO_Y}
-            transform={`scale(${doorScale}) scaleX(${squash})`}
+            transform={`scale(${shieldIn * shieldGrow})`}
             style={{ filter: glow(colors.cyan) }}
           >
-            <HeroIcon name="door.png" size={HERO} />
+            <HeroIcon name="shield.png" size={HERO} />
           </At>
         ) : null}
-
-        {frame >= BEATS.cookies ? (
-          <>
-            <At
-              x={HERO_X}
-              y={HERO_Y}
-              transform={`scale(${cookieScale * (1 + 0.08 * pulse)})`}
-              style={{ filter: glow(cookieGlow, 40 + 35 * pulse) }}
-            >
-              <HeroIcon name="cookie.png" size={HERO} />
-            </At>
-            <At
-              x={HERO_X}
-              y={HERO_Y + HERO / 2 + 40}
-              transform={`scale(${pop(BEATS.cookies + 3, 8)})`}
-              style={{ ...poppins(34), whiteSpace: "nowrap" }}
-            >
-              SESSION ID
-            </At>
-          </>
+        {frame >= BEATS.shieldW && ring < 1 ? (
+          <svg width={1080} height={BAND_H} style={{ position: "absolute", inset: 0 }}>
+            <circle
+              cx={HERO_X}
+              cy={HERO_Y}
+              r={(HERO / 2) * 1.15 + 140 * ring}
+              fill="none"
+              stroke={colors.cyan}
+              strokeWidth={10 * (1 - ring) + 2}
+              opacity={1 - ring}
+            />
+          </svg>
         ) : null}
       </div>
 
       {/* ================= BOTTOM BAND ================= */}
-      <Headline from={BEATS.publicPc} to={BEATS.friend} y={HEADLINE_Y}>
-        <div style={anton(110)}>PUBLIC PC</div>
+      <Headline from={BEATS.twofa} to={BEATS.enable} y={HEADLINE_Y}>
+        <div style={anton(110)}>2-FACTOR AUTH</div>
       </Headline>
-      <Headline from={BEATS.friend} to={BEATS.login} y={HEADLINE_Y}>
-        <div style={anton(110)}>FRIEND'S PHONE</div>
-      </Headline>
-      <Headline from={BEATS.login} to={BEATS.done} y={HEADLINE_Y}>
-        <div style={anton(110)}>LOGGED IN</div>
-      </Headline>
-      <Headline from={BEATS.done} to={BEATS.close} y={HEADLINE_Y}>
-        <div style={anton(110)}>WORK DONE?</div>
-      </Headline>
-      <Headline from={BEATS.close} to={BEATS.logout} y={HEADLINE_Y}>
+      <Headline from={BEATS.enable} to={BEATS.session} y={HEADLINE_Y}>
         <div style={anton(110)}>
-          DON'T JUST <span style={{ color: colors.danger }}>CLOSE</span>
+          TURN IT <span style={{ color: colors.cyan }}>ON</span>
         </div>
       </Headline>
-      <Headline from={BEATS.logout} to={BEATS.cookies} y={HEADLINE_Y}>
-        <div style={{ ...anton(110), color: colors.cyan }}>LOG OUT</div>
+      <Headline from={BEATS.session} to={BEATS.expire} y={HEADLINE_Y}>
+        <div style={anton(110)}>SESSION ID</div>
       </Headline>
-      <Headline from={BEATS.cookies} to={BEATS.store} y={HEADLINE_Y}>
-        <div style={anton(110)}>COOKIES</div>
+      <Headline from={BEATS.expire} to={BEATS.hacker} y={HEADLINE_Y}>
+        <div style={anton(110)}>IT EXPIRES</div>
       </Headline>
-      <Headline from={BEATS.store} to={BEATS.end} y={HEADLINE_Y}>
+      <Headline from={BEATS.hacker} to={BEATS.login} y={HEADLINE_Y}>
+        <div style={{ ...anton(110), color: colors.danger }}>THE HACKER</div>
+      </Headline>
+      <Headline from={BEATS.login} to={BEATS.shield} y={HEADLINE_Y}>
+        <div style={{ ...anton(110), color: colors.danger }}>LOGIN AGAIN?</div>
+      </Headline>
+      <Headline from={BEATS.shield} to={BEATS.biggest} y={HEADLINE_Y}>
+        <div style={anton(110)}>2FA</div>
+      </Headline>
+      <Headline from={BEATS.biggest} to={BEATS.end} y={HEADLINE_Y}>
         <div style={anton(110)}>
-          <span style={{ color: colors.danger }}>SAVED</span> ON DEVICE
+          BIGGEST <span style={{ color: colors.cyan }}>SHIELD</span>
         </div>
       </Headline>
 
       {/* Badge drawn after the headlines so exiting text passes behind it */}
       <At x={HERO_X} y={BADGE_Y}>
-        <TipBadge n={2} enterAt={0} />
+        <TipBadge n={3} enterAt={0} />
       </At>
 
       {frame >= BEATS.check ? (
         <At x={HERO_X} y={ROW_Y} transform={`scale(${rowIn})`}>
           <CheckRow
-            checked={ticked ? 2 : 1}
+            checked={ticked ? 3 : 2}
             animateNewest={ticked}
             checkFrom={BEATS.tick}
-            // Finish the draw on the last frame (tick → end is only 6 frames)
+            // Finish the draw on the last frame
             checkDuration={BEATS.end - 1 - BEATS.tick}
             tickPop
           />
