@@ -16,8 +16,10 @@ export const Headline: React.FC<{
   from: number;
   to: number;
   enter?: "rise" | "pop";
+  /** Vertical center (defaults to HEADLINE_Y). */
+  y?: number;
   children: React.ReactNode;
-}> = ({ from, to, enter = "rise", children }) => {
+}> = ({ from, to, enter = "rise", y = HEADLINE_Y, children }) => {
   const frame = useCurrentFrame();
   const pop = usePop();
   if (frame < from || frame >= to + EXIT) return null;
@@ -30,7 +32,7 @@ export const Headline: React.FC<{
   return (
     <At
       x={540}
-      y={HEADLINE_Y}
+      y={y}
       transform={`translateY(${-70 * exitT}px) ${enterTransform}`}
       style={{ opacity: 1 - exitT, whiteSpace: "nowrap", textAlign: "center" }}
     >

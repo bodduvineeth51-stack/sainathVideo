@@ -126,7 +126,7 @@ export const Tip2Logout: React.FC<Tip2LogoutProps> = ({
 
   return (
     <AbsoluteFill>
-      {showReference ? <ReferenceVideo file="tip2.mp4" /> : null}
+      {showReference ? <ReferenceVideo clip="tip2.mp4" /> : null}
 
       {/* ================= TOP BAND ================= */}
       <div
@@ -142,7 +142,7 @@ export const Tip2Logout: React.FC<Tip2LogoutProps> = ({
       >
         {badge > 0 ? (
           <At x={CENTER_X} y={CENTER_Y} transform={`scale(${1.8 * badge})`}>
-            <TipBadge n={2} />
+            <TipBadge n={2} variant="big" />
           </At>
         ) : null}
 
