@@ -11,6 +11,7 @@ npm run render:thing1        # out/thing1-public-wifi.mov
 npm run render:tip1          # out/tip1-public-wifi.mov (reference clip off)
 npm run render:tip2          # out/tip2-logout.mov (reference clip off)
 npm run render:tip3          # Tip3TwoFactor → also out/tip2-logout.mov (as specified)
+npm run render:tip4          # out/tip4-active-sessions.mov
 ```
 
 - `src/theme.ts` – shared colors, fonts, spring config, layout bands
@@ -25,6 +26,7 @@ npm run render:tip3          # Tip3TwoFactor → also out/tip2-logout.mov (as sp
   `public/tip2.mp4`; icons `public/icons/{desktop,phone,check,cross,door,cookie}.png`
 - `src/components/HeroIcon.tsx` – PNG from public/icons/, capped at 280px (sources are 256px)
 - `src/scenes/Tip3TwoFactor.tsx` – logout/cookie story in the Tip1 layout, 298 frames, clip `public/tip2.mp4`
+- `src/scenes/Tip4ActiveSessions.tsx` – tip #4, 304 frames, device card; clip `public/tip4.mp4`
 - `src/components/BeatLabel.tsx` – Studio sync helper ("f 190 · vpnOn"), prop `showBeatLabels`
 - `src/components/Headline.tsx`, `TipBadge.tsx`, `ReferenceVideo.tsx`, `motion.tsx` – shared
   headline transitions, #N badge, Studio reference footage, spring/position helpers
