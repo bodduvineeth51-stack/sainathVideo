@@ -29,6 +29,10 @@ export type CheckRowProps = {
   checkFrom?: number;
   /** Duration of the checkmark draw in frames. */
   checkDuration?: number;
+  /** 1-based index of a box to pulse with a cyan glow ("current tip"). */
+  highlight?: number;
+  /** Give the newest ticked box a small scale pop as its check draws. */
+  tickPop?: boolean;
 };
 
 export const CheckRow: React.FC<CheckRowProps> = ({
@@ -40,6 +44,8 @@ export const CheckRow: React.FC<CheckRowProps> = ({
   animateNewest = true,
   checkFrom = 0,
   checkDuration = 8,
+  highlight,
+  tickPop = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -67,6 +73,19 @@ export const CheckRow: React.FC<CheckRowProps> = ({
                 extrapolateRight: "clamp",
               })
             : 1;
+        const pop =
+          tickPop && isNewest
+            ? interpolate(
+                frame,
+                [checkFrom, checkFrom + 4, checkFrom + 10],
+                [1, 1.18, 1],
+                { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+              )
+            : 1;
+        const glow =
+          highlight === i + 1
+            ? (Math.sin((frame / fps) * Math.PI * 2 * 1.2) + 1) / 2
+            : null;
         const { strokeDasharray, strokeDashoffset } = evolvePath(
           drawProgress,
           CHECK_PATH,
@@ -85,7 +104,11 @@ export const CheckRow: React.FC<CheckRowProps> = ({
               backgroundColor: isTicked
                 ? `rgba(34, 211, 238, ${0.15 * Math.min(1, drawProgress * 2)})`
                 : "transparent",
-              transform: `scale(${scale})`,
+              transform: `scale(${scale * pop})`,
+              boxShadow:
+                glow === null
+                  ? undefined
+                  : `0 0 ${18 + 22 * glow}px rgba(34, 211, 238, ${0.35 + 0.45 * glow})`,
             }}
           >
             {isTicked && drawProgress > 0 ? (

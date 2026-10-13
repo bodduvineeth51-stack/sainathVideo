@@ -8,7 +8,8 @@
     "studio": "remotion studio",
     "render:protect-five": "remotion render ProtectFiveThings out/protect-five.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
     "typecheck": "tsc --noEmit",
-    "render:thing1": "remotion render Thing1PublicWifi out/thing1-public-wifi.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png"
+    "render:thing1": "remotion render Thing1PublicWifi out/thing1-public-wifi.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "render:tip1": "remotion render Tip1PublicWifi out/tip1-public-wifi.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png --props='{\"showReference\":false}'"
   },
   "dependencies": {
     "@remotion/cli": "4.0.535",
