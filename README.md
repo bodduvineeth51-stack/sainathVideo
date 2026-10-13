@@ -10,6 +10,7 @@ npm run render:protect-five  # out/protect-five.mov (ProRes 4444 with alpha)
 npm run render:thing1        # out/thing1-public-wifi.mov
 npm run render:tip1          # out/tip1-public-wifi.mov (reference clip off)
 npm run render:tip2          # out/tip2-logout.mov (reference clip off)
+npm run render:tip3          # Tip3TwoFactor → also out/tip2-logout.mov (as specified)
 ```
 
 - `src/theme.ts` – shared colors, fonts, spring config, layout bands
@@ -23,6 +24,7 @@ npm run render:tip2          # out/tip2-logout.mov (reference clip off)
 - `src/scenes/Tip2Logout.tsx` – tip #2, 298 frames, PNG-based; retime via `BEATS`; reference clip
   `public/tip2.mp4`; icons `public/icons/{desktop,phone,check,cross,door,cookie}.png`
 - `src/components/HeroIcon.tsx` – PNG from public/icons/, capped at 280px (sources are 256px)
+- `src/scenes/Tip3TwoFactor.tsx` – logout/cookie story in the Tip1 layout, 298 frames, clip `public/tip2.mp4`
 - `src/components/BeatLabel.tsx` – Studio sync helper ("f 190 · vpnOn"), prop `showBeatLabels`
 - `src/components/Headline.tsx`, `TipBadge.tsx`, `ReferenceVideo.tsx`, `motion.tsx` – shared
   headline transitions, #N badge, Studio reference footage, spring/position helpers
