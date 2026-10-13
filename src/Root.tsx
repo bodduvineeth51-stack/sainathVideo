@@ -2,6 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { CheckRowDemo } from "./scenes/CheckRowDemo";
 import { ProtectFiveThings } from "./scenes/ProtectFiveThings";
+import { BEATS, Thing1PublicWifi } from "./scenes/Thing1PublicWifi";
 import { video } from "./theme";
 
 export const RemotionRoot: React.FC = () => {
@@ -11,6 +12,15 @@ export const RemotionRoot: React.FC = () => {
         id="ProtectFiveThings"
         component={ProtectFiveThings}
         durationInFrames={60}
+        fps={video.fps}
+        width={video.width}
+        height={video.height}
+        defaultProps={{ showGuides: false }}
+      />
+      <Composition
+        id="Thing1PublicWifi"
+        component={Thing1PublicWifi}
+        durationInFrames={BEATS.end}
         fps={video.fps}
         width={video.width}
         height={video.height}

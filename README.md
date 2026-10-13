@@ -7,9 +7,12 @@ at y = 656–1264; graphics only live in the top (0–656) and bottom (1264–19
 npm install
 npm run dev                  # Remotion Studio (http://localhost:3000)
 npm run render:protect-five  # out/protect-five.mov (ProRes 4444 with alpha)
+npm run render:thing1        # out/thing1-public-wifi.mov
 ```
 
 - `src/theme.ts` – shared colors, fonts, spring config, layout bands
 - `src/components/CheckRow.tsx` – `<CheckRow checked={n} />` (0–5 ticked; newest tick draws in)
 - `src/scenes/ProtectFiveThings.tsx` – scene 1 (set prop `showGuides: true` in Studio to see the footage band)
+- `src/scenes/Thing1PublicWifi.tsx` – thing #1 (public WiFi), 8s in 4 beats; retime via `BEATS`
+- `src/components/` – also `Shield`, `SessionChip`, `WifiIcon`, `FootageGuide`
 - `src/scenes/CheckRowDemo.tsx` – preview of CheckRow with ticks
