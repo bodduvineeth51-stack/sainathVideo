@@ -17,23 +17,17 @@ export const BEATS = {
 export const DURATION = 300;
 
 import React from "react";
-import {
-  AbsoluteFill,
-  OffthreadVideo,
-  getStaticFiles,
-  interpolate,
-  interpolateColors,
-  spring,
-  staticFile,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, interpolateColors, useCurrentFrame } from "remotion";
 import { evolvePath, getLength, getPointAtLength } from "@remotion/paths";
 import { CheckRow } from "../components/CheckRow";
+import { Glitch } from "../components/Glitch";
+import { Headline, anton } from "../components/Headline";
+import { At, clamp, jitter, usePop } from "../components/motion";
+import { PhoneIcon } from "../components/PhoneIcon";
+import { ReferenceVideo } from "../components/ReferenceVideo";
 import { SessionChip } from "../components/SessionChip";
-import { colors, fontWeights, fonts, layout, popSpring } from "../theme";
-
-const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+import { TipBadge } from "../components/TipBadge";
+import { colors, fontWeights, fonts, layout } from "../theme";
 
 // ---------- Top band geometry ----------
 const BAND_H = layout.footageTop; // 656
@@ -46,50 +40,7 @@ const MID_X = (LINE_X1 + LINE_X2) / 2;
 const TUNNEL_R = 36;
 const GREY = "#8A8F98";
 
-// ---------- Small helpers ----------
-
-const usePop = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  return (from: number, durationInFrames = 10) =>
-    spring({ frame: frame - from, fps, config: popSpring, durationInFrames });
-};
-
-/** Absolutely positions a child with its center at (x, y). */
-const At: React.FC<{
-  x: number;
-  y: number;
-  transform?: string;
-  style?: React.CSSProperties;
-  children: React.ReactNode;
-}> = ({ x, y, transform = "", style, children }) => (
-  <div
-    style={{
-      position: "absolute",
-      left: x,
-      top: y,
-      transform: `translate(-50%, -50%) ${transform}`,
-      ...style,
-    }}
-  >
-    {children}
-  </div>
-);
-
-// Deterministic jitter tables (renders must be reproducible).
-const JITTER = [7, -5, 9, -8, 4, -9, 6, -4];
-const jitter = (frame: number, k = 0) => JITTER[(frame + k * 3) % JITTER.length];
-
 // ---------- Icons (flat SVG: navy fill + off-white outline) ----------
-
-const PhoneIcon: React.FC = () => (
-  <svg width={150} height={260} viewBox="0 0 150 260">
-    <rect x={5} y={5} width={140} height={250} rx={26} fill={colors.panel} stroke={colors.text} strokeWidth={7} />
-    <rect x={22} y={36} width={106} height={180} rx={8} fill="none" stroke={colors.text} strokeWidth={3} opacity={0.5} />
-    <line x1={58} y1={21} x2={92} y2={21} stroke={colors.text} strokeWidth={5} strokeLinecap="round" />
-    <circle cx={75} cy={236} r={9} fill="none" stroke={colors.text} strokeWidth={4} />
-  </svg>
-);
 
 const RouterIcon: React.FC = () => (
   <svg width={260} height={170} viewBox="0 0 260 170" style={{ overflow: "visible" }}>
@@ -168,121 +119,6 @@ const Hacker: React.FC = () => (
     </g>
   </svg>
 );
-
-/** Renders children with a 4-slice horizontal offset + RGB split when active. */
-const Glitch: React.FC<{ active: boolean; children: React.ReactNode }> = ({
-  active,
-  children,
-}) => {
-  const frame = useCurrentFrame();
-  if (!active) return <>{children}</>;
-  const slices = [0, 25, 50, 75];
-  return (
-    <div
-      style={{
-        position: "relative",
-        filter: `drop-shadow(${jitter(frame)}px 0 0 ${colors.danger}) drop-shadow(${-jitter(frame, 1)}px 0 0 ${colors.cyan})`,
-      }}
-    >
-      <div style={{ visibility: "hidden" }}>{children}</div>
-      {slices.map((top, i) => (
-        <div
-          key={top}
-          style={{
-            position: "absolute",
-            inset: 0,
-            clipPath: `inset(${top}% 0 ${100 - top - 25}% 0)`,
-            transform: `translateX(${jitter(frame, i + 2) * 2}px)`,
-          }}
-        >
-          {children}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// ---------- Bottom band headlines ----------
-
-const HEADLINE_Y = 1500;
-const EXIT = 6;
-
-const Headline: React.FC<{
-  from: number;
-  to: number;
-  enter?: "rise" | "pop";
-  children: React.ReactNode;
-}> = ({ from, to, enter = "rise", children }) => {
-  const frame = useCurrentFrame();
-  const pop = usePop();
-  if (frame < from || frame >= to + EXIT) return null;
-
-  const s = pop(from, 10);
-  const exitT = interpolate(frame, [to, to + EXIT], [0, 1], clamp);
-  const enterTransform =
-    enter === "pop" ? `scale(${s})` : `translateY(${(1 - s) * 140}px)`;
-
-  return (
-    <At
-      x={540}
-      y={HEADLINE_Y}
-      transform={`translateY(${-70 * exitT}px) ${enterTransform}`}
-      style={{ opacity: 1 - exitT, whiteSpace: "nowrap", textAlign: "center" }}
-    >
-      {children}
-    </At>
-  );
-};
-
-const anton = (size: number): React.CSSProperties => ({
-  fontFamily: fonts.headline,
-  fontWeight: fontWeights.headline,
-  fontSize: size,
-  lineHeight: 1.1,
-  letterSpacing: 2,
-  color: colors.text,
-});
-
-// ---------- Reference footage (Studio only) ----------
-
-const REFERENCE_FILE = "tip1.mp4";
-
-const Reference: React.FC = () => {
-  const hasClip = getStaticFiles().some((f) => f.name === REFERENCE_FILE);
-  const band: React.CSSProperties = {
-    position: "absolute",
-    left: 0,
-    top: layout.footageTop,
-    width: 1080,
-    height: layout.footageBottom - layout.footageTop,
-  };
-  if (!hasClip) {
-    return (
-      <div
-        style={{
-          ...band,
-          boxSizing: "border-box",
-          border: `3px dashed ${colors.danger}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: fonts.mono,
-          fontSize: 40,
-          color: colors.text,
-          background: "rgba(255, 59, 92, 0.15)",
-        }}
-      >
-        put your clip at public/{REFERENCE_FILE}
-      </div>
-    );
-  }
-  return (
-    <OffthreadVideo
-      src={staticFile(REFERENCE_FILE)}
-      style={{ ...band, objectFit: "cover" }}
-    />
-  );
-};
 
 // ---------- Scene ----------
 
@@ -380,7 +216,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
 
   return (
     <AbsoluteFill>
-      {showReference ? <Reference /> : null}
+      {showReference ? <ReferenceVideo file="tip1.mp4" /> : null}
 
       {/* ================= TOP BAND ================= */}
       <div
@@ -720,18 +556,7 @@ export const Tip1PublicWifi: React.FC<Tip1PublicWifiProps> = ({
 
       {/* ================= BOTTOM BAND ================= */}
       <Headline from={BEATS.first} to={BEATS.wifi} enter="pop">
-        <div
-          style={{
-            ...anton(120),
-            lineHeight: 1,
-            color: colors.panel,
-            backgroundColor: colors.cyan,
-            borderRadius: 32,
-            padding: "18px 42px 14px",
-          }}
-        >
-          #1
-        </div>
+        <TipBadge n={1} />
       </Headline>
 
       <Headline from={BEATS.wifi} to={BEATS.accounts}>

@@ -4,6 +4,7 @@ import { CheckRowDemo } from "./scenes/CheckRowDemo";
 import { ProtectFiveThings } from "./scenes/ProtectFiveThings";
 import { BEATS, Thing1PublicWifi } from "./scenes/Thing1PublicWifi";
 import { DURATION as TIP1_DURATION, Tip1PublicWifi } from "./scenes/Tip1PublicWifi";
+import { DURATION as TIP2_DURATION, Tip2Logout } from "./scenes/Tip2Logout";
 import { video } from "./theme";
 
 export const RemotionRoot: React.FC = () => {
@@ -31,6 +32,15 @@ export const RemotionRoot: React.FC = () => {
         id="Tip1PublicWifi"
         component={Tip1PublicWifi}
         durationInFrames={TIP1_DURATION}
+        fps={video.fps}
+        width={video.width}
+        height={video.height}
+        defaultProps={{ showReference: true }}
+      />
+      <Composition
+        id="Tip2Logout"
+        component={Tip2Logout}
+        durationInFrames={TIP2_DURATION}
         fps={video.fps}
         width={video.width}
         height={video.height}
