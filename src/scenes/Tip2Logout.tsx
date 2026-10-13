@@ -4,8 +4,8 @@
  * aithe ... just close cheyyakunda logout avvandi. Endukante cookies ... store
  * aithai."
  *
- * Images live in public/: desktop.png, phone.png, check.png, cross.png,
- * door.png, cookie.png. Reference clip: public/tip2.mp4.
+ * Icons live in public/icons/: desktop.png, phone.png, check.png, cross.png,
+ * door.png, cookie.png (256px PNGs). Reference clip: public/tip2.mp4.
  */
 
 // ---------- TIMING (retime here; everything below is relative to these) ----------
@@ -25,7 +25,7 @@ export const DURATION = BEATS.end;
 
 import React from "react";
 import { AbsoluteFill, interpolate, interpolateColors, useCurrentFrame } from "remotion";
-import { AssetImage } from "../components/AssetImage";
+import { HERO_MAX, HeroIcon } from "../components/HeroIcon";
 import { BeatLabel } from "../components/BeatLabel";
 import { CheckRow } from "../components/CheckRow";
 import { Headline, anton, poppins } from "../components/Headline";
@@ -38,12 +38,12 @@ import { colors, layout } from "../theme";
 const BAND_H = layout.footageTop; // 656
 const CENTER_X = 540;
 const CENTER_Y = 318;
-const HERO = 320;
-const SIDE = 260;
+const HERO = HERO_MAX; // 280
+const SIDE = 228;
 const DESKTOP_SIDE_X = 360;
 const PHONE_X = 720;
-const CHECK = 120;
-const CROSS = 180;
+const CHECK = 105;
+const CROSS = 158;
 const ROW_Y = 1720;
 
 /** Rows appear and the top band fades this many frames before the tick. */
@@ -152,14 +152,14 @@ export const Tip2Logout: React.FC<Tip2LogoutProps> = ({
             y={CENTER_Y}
             transform={`translateX(${(1 - phoneIn) * 520 + phoneOut * 520}px)`}
           >
-            <AssetImage file="phone.png" size={SIDE} />
+            <HeroIcon name="phone.png" size={SIDE} />
           </At>
         ) : null}
 
         {frame >= BEATS.publicPc && desktopScale > 0 ? (
           <At x={desktopX} y={CENTER_Y} transform={`scale(${desktopScale})`}>
             <div style={{ position: "relative", width: desktopSize, height: desktopSize }}>
-              <AssetImage file="desktop.png" size={desktopSize} />
+              <HeroIcon name="desktop.png" size={desktopSize} />
 
               {frame >= BEATS.login + 4 && checkScale > 0 ? (
                 <At
@@ -168,7 +168,7 @@ export const Tip2Logout: React.FC<Tip2LogoutProps> = ({
                   transform={`scale(${checkScale})`}
                   style={{ filter: glow(colors.cyan, 20) }}
                 >
-                  <AssetImage file="check.png" size={CHECK} />
+                  <HeroIcon name="check.png" size={CHECK} />
                 </At>
               ) : null}
 
@@ -179,7 +179,7 @@ export const Tip2Logout: React.FC<Tip2LogoutProps> = ({
                   transform={`scale(${crossScale})`}
                   style={{ filter: glow(colors.danger) }}
                 >
-                  <AssetImage file="cross.png" size={CROSS} />
+                  <HeroIcon name="cross.png" size={CROSS} />
                 </At>
               ) : null}
             </div>
@@ -193,7 +193,7 @@ export const Tip2Logout: React.FC<Tip2LogoutProps> = ({
             transform={`scale(${doorScale}) scaleX(${squash})`}
             style={{ filter: glow(colors.cyan) }}
           >
-            <AssetImage file="door.png" size={HERO} />
+            <HeroIcon name="door.png" size={HERO} />
           </At>
         ) : null}
 
@@ -205,11 +205,11 @@ export const Tip2Logout: React.FC<Tip2LogoutProps> = ({
               transform={`scale(${cookieScale * cookiePulse})`}
               style={{ filter: glow(cookieGlowColor, cookieGlowPx) }}
             >
-              <AssetImage file="cookie.png" size={HERO - 40} />
+              <HeroIcon name="cookie.png" size={245} />
             </At>
             <At
               x={CENTER_X}
-              y={CENTER_Y + 170}
+              y={CENTER_Y + 150}
               transform={`scale(${pop(BEATS.cookies + 4, 8)})`}
               style={{ ...poppins(36), whiteSpace: "nowrap" }}
             >
