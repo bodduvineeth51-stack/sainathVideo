@@ -1,0 +1,24 @@
+{
+  "name": "sainath-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion overlays for Instagram reels",
+  "scripts": {
+    "dev": "remotion studio",
+    "studio": "remotion studio",
+    "render:protect-five": "remotion render ProtectFiveThings out/protect-five.mov --codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.535",
+    "@remotion/google-fonts": "4.0.535",
+    "@remotion/paths": "4.0.535",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}
